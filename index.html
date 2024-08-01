@@ -6,16 +6,54 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gemini Response</title>
     <style>
+        body {
+            background-color: black;
+            font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+        }
+
+        form {
+            background-color: rgba(126, 126, 126, 0.54);
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 20px;
+        }
+
+        form input {
+            width: 100%;
+            padding: 10px 10px 10px 5px;
+            border-radius: 10px;
+            text-wrap: wrap;
+        }
+
+        form button {
+            width: max-content;
+            padding: 10px;
+            background-color: black;
+            color: white;
+            font-size: large;
+            border: none;
+            border-radius: 10px;
+            margin-left: 4px;
+        }
+
         #response {
             white-space: pre-wrap;
-            margin-top: 20px;
+            margin: 20px;
+            color: white;
+            background-color: rgb(43, 43, 43);
+            border-radius: 20px;
+            padding: 20px;
         }
 
         .code-box {
             position: relative;
-            background-color: #f5f5f5;
+            background-color: rgb(55, 55, 55);
             border: 1px solid #ccc;
             padding: 10px;
+            border-radius: 20px;
+            color: white;
             margin-top: 10px;
             font-family: 'Courier New', Courier, monospace;
             overflow: auto;
@@ -33,6 +71,30 @@
             font-size: 12px;
             border-radius: 3px;
         }
+
+        .loader {
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top: 4px solid white;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .hidden {
+            display: none;
+        }
     </style>
 </head>
 
@@ -42,28 +104,31 @@
         <button type="submit">Submit</button>
     </form>
     <div id="response"></div>
+    <div class="loader hidden" id="loader"></div>
 
     <script>
-        const API_KEY = 'apikey';  
+        const API_KEY = 'apikey'; // Replace with your new API key
         const form = document.getElementById('userInputForm');
         const responseDiv = document.getElementById('response');
+        const loader = document.getElementById('loader');
 
         form.addEventListener('submit', (event) => {
             event.preventDefault();
             const formData = new FormData(form);
             const userInput = formData.get('userInput');
 
+            loader.classList.remove('hidden');
+            responseDiv.innerHTML = '';
+
             fetch('https://generativelanguage.googleapis.com/v1/models/gemini-pro:generateContent', {
                 method: 'POST',
                 body: JSON.stringify({
-                    contents: [
-                        {
-                            role: 'user',
-                            parts: [
-                                { text: userInput }
-                            ]
-                        }
-                    ]
+                    contents: [{
+                        role: 'user',
+                        parts: [{
+                            text: userInput
+                        }]
+                    }]
                 }),
                 headers: {
                     'Content-Type': 'application/json',
@@ -89,6 +154,9 @@
                 .catch(error => {
                     console.error('Error fetching data:', error);
                     responseDiv.textContent = 'An error occurred';
+                })
+                .finally(() => {
+                    loader.classList.add('hidden');
                 });
         });
 
