@@ -8,8 +8,30 @@
     <style>
         #response {
             white-space: pre-wrap;
-            /* Ensures the response text formats correctly */
             margin-top: 20px;
+        }
+
+        .code-box {
+            position: relative;
+            background-color: #f5f5f5;
+            border: 1px solid #ccc;
+            padding: 10px;
+            margin-top: 10px;
+            font-family: 'Courier New', Courier, monospace;
+            overflow: auto;
+        }
+
+        .copy-button {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            padding: 5px 10px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-size: 12px;
+            border-radius: 3px;
         }
     </style>
 </head>
@@ -22,7 +44,7 @@
     <div id="response"></div>
 
     <script>
-        const API_KEY = 'API_KEY';  // Replace with your new API key
+        const API_KEY = 'apikey';  
         const form = document.getElementById('userInputForm');
         const responseDiv = document.getElementById('response');
 
@@ -50,15 +72,37 @@
             })
                 .then(response => response.json())
                 .then(data => {
-                    // Extract the response text
-                    const responseText = data.candidates[0].content.parts[0].text;
-                    responseDiv.textContent = responseText;
+                    let responseText = data.candidates[0].content.parts[0].text;
+                    const escapeHtml = (text) => {
+                        return text
+                            .replace(/&/g, "&amp;")
+                            .replace(/</g, "&lt;")
+                            .replace(/>/g, "&gt;");
+                    };
+                    responseText = responseText.replace(/\*\*(.*?)\*\*/g, "<b>$1</b>");
+                    responseText = responseText.replace(/```([\s\S]*?)```/g, (match, p1) => {
+                        return `<div class="code-box"><button class="copy-button" onclick="copyCode(this)">Copy</button><pre>${escapeHtml(p1)}</pre></div>`;
+                    });
+
+                    responseDiv.innerHTML = responseText;
                 })
                 .catch(error => {
                     console.error('Error fetching data:', error);
                     responseDiv.textContent = 'An error occurred';
                 });
         });
+
+        function copyCode(button) {
+            const codeBox = button.nextElementSibling;
+            const range = document.createRange();
+            range.selectNodeContents(codeBox);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            document.execCommand('copy');
+            selection.removeAllRanges();
+            alert('Code copied to clipboard');
+        }
     </script>
 </body>
 
